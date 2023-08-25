@@ -24,8 +24,25 @@ public class StripeController : ControllerBase
     public ActionResult Create()
     {
         var domain = _appSecrets.BaseAddress;
+        var customerCreateOptions = new CustomerCreateOptions{};
+
+        var customerService = new CustomerService();
+        var customer = customerService.Create(customerCreateOptions);
         var options = new SessionCreateOptions
         {
+            Mode = "payment",
+            Customer = customer.Id,
+            PaymentMethodTypes = new List<string> { "us_bank_account" },
+            PaymentMethodOptions = new SessionPaymentMethodOptionsOptions
+            {
+                UsBankAccount = new SessionPaymentMethodOptionsUsBankAccountOptions
+                {
+                    FinancialConnections = new SessionPaymentMethodOptionsUsBankAccountFinancialConnectionsOptions
+                    {
+                        Permissions = new List<string> { "payment_method" },
+                    },
+                },
+            },
             LineItems = new List<SessionLineItemOptions>
             {
                 new SessionLineItemOptions
@@ -35,7 +52,6 @@ public class StripeController : ControllerBase
                     Quantity = 1,
                 },
             },
-            Mode = "payment",
             SuccessUrl = "https://plhhoa.link/posts/payments", //domain + "/success",
             CancelUrl = "https://plhhoa.link/posts/payments", //domain + "/cancel",
             CustomFields = new List<SessionCustomFieldOptions>

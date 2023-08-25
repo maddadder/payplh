@@ -3,7 +3,7 @@ version: '2'
 services:
 
   payplh:
-      image: 192.168.1.151:32000/payplh:1.11.122
+      image: 192.168.1.151:32000/payplh:1.11.123
       build:
           context: ./
           dockerfile: ./Dockerfile
