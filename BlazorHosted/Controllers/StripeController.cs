@@ -36,8 +36,8 @@ public class StripeController : ControllerBase
                 },
             },
             Mode = "payment",
-            SuccessUrl = domain + "/success.html",
-            CancelUrl = domain + "/cancel.html",
+            SuccessUrl = domain + "/success",
+            CancelUrl = domain + "/cancel",
         };
         var service = new SessionService();
         Session session = service.Create(options);
