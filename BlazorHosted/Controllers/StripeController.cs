@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using BlazorHosted;
+using BlazorHosted.Data;
 using Lib;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -20,18 +21,41 @@ public class StripeController : ControllerBase
         StripeConfiguration.ApiKey = _appSecrets.StripeSecretKey;
     }
 
-    [HttpGet("create-checkout-session")]
-    public ActionResult Create()
+    [HttpPost("create-payment-session")]
+    public ActionResult Create([FromBody] BlazorCustomer customerData)
     {
         var domain = _appSecrets.BaseAddress;
-        var customerCreateOptions = new CustomerCreateOptions{};
-
         var customerService = new CustomerService();
-        var customer = customerService.Create(customerCreateOptions);
+
+        // Define the search options with the email
+        var listOptions = new CustomerListOptions
+        {
+            Email = customerData.Email,
+            Limit = 1, // You can limit the number of results, if needed
+        };
+        string customerId;
+
+        // Retrieve customers matching the email
+        StripeList<Customer> customers = customerService.List(listOptions);
+        // If a matching customer is found, retrieve the customer ID
+        if (customers.Data.Count > 0)
+        {
+            customerId = customers.Data[0].Id;
+            // Use the customerId for further operations
+        }
+        else
+        {
+            // Create a new customer with the targetEmail
+            var customerOptions = new CustomerCreateOptions
+            {
+                Email = customerData.Email,
+            };
+            customerId = customerService.Create(customerOptions).Id;
+        }
         var options = new SessionCreateOptions
         {
             Mode = "payment",
-            Customer = customer.Id,
+            Customer = customerId,
             PaymentMethodTypes = new List<string> { "us_bank_account" },
             PaymentMethodOptions = new SessionPaymentMethodOptionsOptions
             {
@@ -75,7 +99,8 @@ public class StripeController : ControllerBase
         var service = new SessionService();
         Session session = service.Create(options);
 
-        Response.Headers.Add("Location", session.Url);
-        return new StatusCodeResult(303);
+        // Return the redirect URL as JSON response
+        var response = new { RedirectUrl = session.Url };
+        return Ok(response);
     }
 }

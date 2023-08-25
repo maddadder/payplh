@@ -1,0 +1,42 @@
+﻿@page "/create-payment-session"
+
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Create Payment Session</PageTitle>
+
+<h3>Create Payment Session</h3>
+
+<form @onsubmit="SubmitForm" action="/api/stripe/create-payment-session">
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" @bind="customer.Email" style="max-width:400px" />
+    </div>
+    <br/>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@code {
+    Data.BlazorCustomer customer = new Data.BlazorCustomer();
+
+    private async Task SubmitForm()
+    {
+        var api = ClientFactory.CreateClient("api");
+        // Send the POST request to the specified endpoint
+        var response = await api.PostAsJsonAsync("/api/stripe/create-payment-session", customer);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Deserialize the JSON response to get the redirect URL
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseObject = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(responseBody);
+
+            // Redirect the user to the provided URL
+            Navigation.NavigateTo(responseObject["redirectUrl"]);
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+}
