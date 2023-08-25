@@ -38,6 +38,23 @@ public class StripeController : ControllerBase
             Mode = "payment",
             SuccessUrl = domain + "/success",
             CancelUrl = domain + "/cancel",
+            CustomFields = new List<SessionCustomFieldOptions>
+            {
+                new SessionCustomFieldOptions
+                {
+                    Key = "housenumber",
+                    Label = new SessionCustomFieldLabelOptions
+                    {
+                        Type = "custom",
+                        Custom = "House Number",
+                    },
+                    Type = "numeric",
+                    Numeric = new SessionCustomFieldNumericOptions{
+                        MinimumLength = 4,
+                        MaximumLength = 5
+                    }
+                },
+            },
         };
         var service = new SessionService();
         Session session = service.Create(options);
