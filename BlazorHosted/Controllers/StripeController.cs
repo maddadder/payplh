@@ -36,8 +36,8 @@ public class StripeController : ControllerBase
                 },
             },
             Mode = "payment",
-            SuccessUrl = domain + "/success",
-            CancelUrl = domain + "/cancel",
+            SuccessUrl = "https://plhhoa.link/posts/payments", //domain + "/success",
+            CancelUrl = "https://plhhoa.link/posts/payments", //domain + "/cancel",
             CustomFields = new List<SessionCustomFieldOptions>
             {
                 new SessionCustomFieldOptions
