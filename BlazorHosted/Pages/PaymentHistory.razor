@@ -1,9 +1,11 @@
 @page "/get-payment-history"
 @using Lib
+@using BlazorHosted.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
 @inject AppSecrets _appSecrets
 @inject IHttpClientFactory ClientFactory
-
+@inject JwtTokenService JwtTokenService
 <h2>Get Payment History</h2>
 <br />
 <AuthorizeView Roles="userdata.write">
@@ -31,6 +33,10 @@
     private async Task SubmitForm()
     {
         var api = ClientFactory.CreateClient("api");
+
+        var token = JwtTokenService.GetAccessToken(); // Get the JWT token
+        api.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         // Send the POST request to the specified endpoint
         var response = await api.PostAsJsonAsync("/api/stripe/get-payment-history", customer);
 
@@ -49,4 +55,6 @@
             // Handle error
         }
     }
+    
+
 }

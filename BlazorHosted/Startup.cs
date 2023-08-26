@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using BlazorHosted.Services;
 
 namespace BlazorHosted
 {
@@ -30,12 +33,28 @@ namespace BlazorHosted
             {
                 client.BaseAddress = new Uri(bindAppSecrets.BaseAddress); // Replace with your server URL
             });
+            services.AddHttpClient<JwtTokenService>();
             // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
             // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
             // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
             // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token.
             JwtSecurityTokenHandler.DefaultMapInboundClaims = true;
             services.AddMicrosoftIdentityWebAppAuthentication(Configuration, "AzureAd"); 
+            services.AddAuthentication()
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = bindAppSecrets.BaseAddress,
+                    ValidAudience = bindAppSecrets.BaseAddress,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(bindAppSecrets.JwtSigningKey))
+                };
+            });
+
             services.AddControllersWithViews(options =>
             {
                 /*var policy = new AuthorizationPolicyBuilder()

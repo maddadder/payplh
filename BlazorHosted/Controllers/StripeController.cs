@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using BlazorHosted;
 using BlazorHosted.Data;
 using Lib;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
@@ -21,6 +23,7 @@ public class StripeController : ControllerBase
         StripeConfiguration.ApiKey = _appSecrets.StripeSecretKey;
     }
     [HttpPost("get-payment-history")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public ActionResult GetPaymentHistory([FromBody] BlazorCustomer customerData)
     {
         var domain = _appSecrets.BaseAddress;

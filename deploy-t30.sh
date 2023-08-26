@@ -1,7 +1,5 @@
 docker-compose build
-docker push 192.168.1.151:32000/payplh:1.11.128
-
-#payplh-t30
+docker push 192.168.1.151:32000/payplh:1.113.1
 helm upgrade payplh -f ./chart/values.yaml ./chart --namespace default
 
 #dashboard
