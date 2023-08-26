@@ -6,5 +6,6 @@ public class BlazorCustomer
 {
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email address")]
-    public string Email { get; set; }
+    public string email { get; set; }
+    public long total { get; set; }
 }

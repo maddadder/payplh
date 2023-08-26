@@ -1,0 +1,52 @@
+@page "/get-payment-history"
+@using Lib
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AppSecrets _appSecrets
+@inject IHttpClientFactory ClientFactory
+
+<h2>Get Payment History</h2>
+<br />
+<AuthorizeView Roles="userdata.write">
+    <Authorized Context="Auth">
+        <form @onsubmit="SubmitForm" action="/api/stripe/get-payment-history">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" id="email" @bind="customer.email" style="max-width:400px" />
+            </div>
+            <br/>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div>&#160;</div>
+        <div>@result</div>
+    </Authorized>
+    <NotAuthorized>
+        You are not authorized to view this page
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    Data.BlazorCustomer customer = new Data.BlazorCustomer();
+    string result = "";
+    private async Task SubmitForm()
+    {
+        var api = ClientFactory.CreateClient("api");
+        // Send the POST request to the specified endpoint
+        var response = await api.PostAsJsonAsync("/api/stripe/get-payment-history", customer);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Deserialize the JSON response to get the redirect URL
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseObject = System.Text.Json.JsonSerializer.Deserialize<Data.BlazorCustomer>(responseBody);
+            if(responseObject != null)
+            {
+                result = $"Total: {(decimal)responseObject.total / 100}";
+            }
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+}

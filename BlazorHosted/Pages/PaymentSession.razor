@@ -10,7 +10,7 @@
 <form @onsubmit="SubmitForm" action="/api/stripe/create-payment-session">
     <div class="form-group">
         <label for="email">Email:</label>
-        <input type="email" class="form-control" id="email" @bind="customer.Email" style="max-width:400px" />
+        <input type="email" class="form-control" id="email" @bind="customer.email" style="max-width:400px" />
     </div>
     <br/>
     <button type="submit" class="btn btn-primary">Submit</button>

@@ -1,6 +1,11 @@
 using System;
 using Microsoft.AspNetCore.HttpOverrides;
 using Lib;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BlazorHosted
 {
@@ -25,13 +30,21 @@ namespace BlazorHosted
             {
                 client.BaseAddress = new Uri(bindAppSecrets.BaseAddress); // Replace with your server URL
             });
+            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
+            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
+            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
+            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token.
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = true;
+            services.AddMicrosoftIdentityWebAppAuthentication(Configuration, "AzureAd"); 
             services.AddControllersWithViews(options =>
             {
                 /*var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));*/
-            });
+            }).AddMicrosoftIdentityUI();
+            services.AddSingleton<IAuthorizationMiddlewareResultHandler,
+                          MyAuthorizationMiddlewareResultHandler>();
             services.AddHttpContextAccessor();
             services.AddRazorPages();
             services.AddServerSideBlazor();
@@ -45,6 +58,12 @@ namespace BlazorHosted
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
+            services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            {
+                // The claim in the Jwt token where App roles are available.
+                options.TokenValidationParameters.RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+                options.TokenValidationParameters.NameClaimType = "name";
             });
             services.AddHealthChecks();
         }
@@ -66,16 +85,17 @@ namespace BlazorHosted
                 app.UseHsts();
             }
             // caused the reply_url to start with https
-            /*app.Use((context, next) =>
+            app.Use((context, next) =>
             {
                 context.Request.Scheme = "https";
                 return next();
-            });*/
-            //app.UseHttpsRedirection();
+            });
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
