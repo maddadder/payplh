@@ -23,7 +23,7 @@ public class StripeController : ControllerBase
         StripeConfiguration.ApiKey = _appSecrets.StripeSecretKey;
     }
     [HttpPost("get-payment-history")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(Roles = "local.admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public ActionResult GetPaymentHistory([FromBody] BlazorCustomer customerData)
     {
         var domain = _appSecrets.BaseAddress;

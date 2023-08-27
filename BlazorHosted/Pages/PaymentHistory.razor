@@ -34,7 +34,7 @@
     {
         var api = ClientFactory.CreateClient("api");
 
-        var token = JwtTokenService.GetAccessToken(); // Get the JWT token
+        var token = JwtTokenService.GetLocalAdminAccessToken(); // Get the JWT token
         api.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Send the POST request to the specified endpoint

@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Lib;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BlazorHosted.Services
 {
@@ -19,16 +18,20 @@ namespace BlazorHosted.Services
             _appSecrets = appSecrets;
             _httpClient = httpClient;
         }
-        public string GetAccessToken()
+        public string GetLocalAdminAccessToken()
         {
-            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var key = System.Text.Encoding.UTF8.GetBytes(_appSecrets.JwtSigningKey); 
-            var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_appSecrets.JwtSigningKey); 
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Role, "local.admin"),
+                }),
                 Issuer = _appSecrets.BaseAddress,
                 Audience = _appSecrets.BaseAddress,
                 Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
